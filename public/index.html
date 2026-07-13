@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Scratch Cloud Controller</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <h1>Scratch Cloud Controller</h1>
+
+  <!-- 接続フォーム -->
+  <section class="card">
+    <h2>Scratch Cloud 接続</h2>
+    <div class="form-group">
+      <label>ユーザー名</label>
+      <input id="username" type="text" placeholder="Scratch ユーザー名">
+    </div>
+
+    <div class="form-group">
+      <label>パスワード</label>
+      <input id="password" type="password" placeholder="Scratch パスワード">
+    </div>
+
+    <div class="form-group">
+      <label>プロジェクトID</label>
+      <input id="projectId" type="text" placeholder="例: 123456789">
+    </div>
+
+    <button id="connectBtn">接続する</button>
+    <p id="connectStatus"></p>
+  </section>
+
+  <!-- クラウド変数送信 -->
+  <section class="card">
+    <h2>クラウド変数送信</h2>
+
+    <div class="form-group">
+      <label>変数名</label>
+      <input id="cloudName" type="text" placeholder="例: MESSAGE">
+    </div>
+
+    <div class="form-group">
+      <label>値</label>
+      <input id="cloudValue" type="text" placeholder="送信する値">
+    </div>
+
+    <button id="sendBtn">送信</button>
+    <p id="sendStatus"></p>
+  </section>
+
+  <!-- クラウド変数一覧 -->
+  <section class="card">
+    <h2>クラウド変数一覧</h2>
+    <button id="refreshBtn">更新</button>
+    <pre id="cloudValues"></pre>
+  </section>
+
+  <script src="app.js"></script>
+</body>
+</html>

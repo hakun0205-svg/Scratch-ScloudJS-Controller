@@ -1,0 +1,85 @@
+/* style.css */
+
+/* 全体レイアウト */
+body {
+  font-family: "Segoe UI", sans-serif;
+  background: #f0f0f5;
+  margin: 0;
+  padding: 20px;
+  color: #333;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #444;
+}
+
+/* カード風セクション */
+.card {
+  background: #fff;
+  padding: 20px;
+  margin: 20px auto;
+  width: 90%;
+  max-width: 600px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.card h2 {
+  margin-top: 0;
+  color: #555;
+}
+
+/* フォーム */
+.form-group {
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #bbb;
+  border-radius: 6px;
+  font-size: 16px;
+}
+
+/* ボタン */
+button {
+  width: 100%;
+  padding: 12px;
+  background: #4a8cff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+button:hover {
+  background: #3a78e0;
+}
+
+/* ステータス表示 */
+#connectStatus,
+#sendStatus {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #444;
+}
+
+/* クラウド変数一覧 */
+pre {
+  background: #f7f7f7;
+  padding: 15px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  overflow-x: auto;
+}
