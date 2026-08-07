@@ -170,7 +170,7 @@ app.post("/api/send", (req, res) => {
 // ------------------------------
 // API: 現在のクラウド変数キャッシュを返す
 // ------------------------------
-app.get("/api/cloud-values", (req, res) => {
+app.post("/api/cloud-values", (req, res) => {
   res.json({
     ok: true,
     clouddatas,
@@ -182,7 +182,9 @@ app.get("/api/cloud-values", (req, res) => {
 // ------------------------------
 app.post("/api/disconnect", (req, res) => {
   try {
-    scloudjs.close();
+    if (typeof scloudjs.close === "function") {
+      scloudjs.close();
+    }
     isConnected = false;
     res.json({
       ok: true,

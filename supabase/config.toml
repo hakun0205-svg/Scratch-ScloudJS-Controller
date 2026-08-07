@@ -1,0 +1,4 @@
+project_id = "scratch-scloudjs-controller"
+
+[functions.scratch-controller]
+verify_jwt = false

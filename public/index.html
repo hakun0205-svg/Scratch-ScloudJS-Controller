@@ -2,59 +2,90 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Scratch Cloud Controller</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <main class="page-shell">
+    <header class="hero">
+      <p class="eyebrow">ScloudJS 1.2.6 / Supabase / GitHub Pages</p>
+      <h1>Scratch Cloud Controller</h1>
+      <p>GitHub Pages などの静的ホスティングから Supabase Edge Function 経由で Scratch Cloud を操作します。</p>
+    </header>
 
-  <h1>Scratch Cloud Controller</h1>
+    <section class="card">
+      <h2>バックエンド設定</h2>
+      <p class="hint">GitHub Pages では「Supabase Edge Function」を選択してください。ローカル Node サーバーで試す場合は「Local Express API」を使えます。</p>
+      <div class="mode-grid" role="radiogroup" aria-label="API mode">
+        <label class="radio-card">
+          <input type="radio" name="apiMode" value="supabase" checked>
+          <span>Supabase Edge Function</span>
+        </label>
+        <label class="radio-card">
+          <input type="radio" name="apiMode" value="local">
+          <span>Local Express API</span>
+        </label>
+      </div>
 
-  <!-- 接続フォーム -->
-  <section class="card">
-    <h2>Scratch Cloud 接続</h2>
-    <div class="form-group">
-      <label>ユーザー名</label>
-      <input id="username" type="text" placeholder="Scratch ユーザー名">
-    </div>
+      <div id="supabaseSettings" class="settings-grid">
+        <div class="form-group">
+          <label for="supabaseUrl">Supabase URL</label>
+          <input id="supabaseUrl" type="url" placeholder="https://xxxxx.supabase.co" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="supabaseAnonKey">Supabase anon key</label>
+          <input id="supabaseAnonKey" type="password" placeholder="eyJ..." autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="functionName">Function 名</label>
+          <input id="functionName" type="text" value="scratch-controller">
+        </div>
+        <button id="saveSupabaseSettingsBtn" type="button" class="secondary">Supabase 設定を保存</button>
+      </div>
+    </section>
 
-    <div class="form-group">
-      <label>パスワード</label>
-      <input id="password" type="password" placeholder="Scratch パスワード">
-    </div>
+    <section class="card">
+      <h2>Scratch Cloud 接続</h2>
+      <div class="form-group">
+        <label for="username">ユーザー名</label>
+        <input id="username" type="text" placeholder="Scratch ユーザー名" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label for="password">パスワード</label>
+        <input id="password" type="password" placeholder="Scratch パスワード" autocomplete="current-password">
+      </div>
+      <div class="form-group">
+        <label for="projectId">プロジェクトID</label>
+        <input id="projectId" type="text" inputmode="numeric" placeholder="例: 123456789">
+      </div>
+      <button id="connectBtn" type="button">接続する</button>
+      <p id="connectStatus" class="status" aria-live="polite"></p>
+    </section>
 
-    <div class="form-group">
-      <label>プロジェクトID</label>
-      <input id="projectId" type="text" placeholder="例: 123456789">
-    </div>
+    <section class="card">
+      <h2>クラウド変数送信</h2>
+      <div class="form-group">
+        <label for="cloudName">変数名</label>
+        <input id="cloudName" type="text" placeholder="例: MESSAGE">
+      </div>
+      <div class="form-group">
+        <label for="cloudValue">値</label>
+        <input id="cloudValue" type="text" placeholder="送信する値">
+      </div>
+      <button id="sendBtn" type="button">送信</button>
+      <p id="sendStatus" class="status" aria-live="polite"></p>
+    </section>
 
-    <button id="connectBtn">接続する</button>
-    <p id="connectStatus"></p>
-  </section>
-
-  <!-- クラウド変数送信 -->
-  <section class="card">
-    <h2>クラウド変数送信</h2>
-
-    <div class="form-group">
-      <label>変数名</label>
-      <input id="cloudName" type="text" placeholder="例: MESSAGE">
-    </div>
-
-    <div class="form-group">
-      <label>値</label>
-      <input id="cloudValue" type="text" placeholder="送信する値">
-    </div>
-
-    <button id="sendBtn">送信</button>
-    <p id="sendStatus"></p>
-  </section>
-
-  <!-- クラウド変数一覧 -->
-  <section class="card">
-    <h2>クラウド変数一覧</h2>
-    <button id="refreshBtn">更新</button>
-    <pre id="cloudValues"></pre>
-  </section>
+    <section class="card">
+      <h2>クラウド変数一覧</h2>
+      <div class="button-row">
+        <button id="refreshBtn" type="button" class="secondary">更新</button>
+        <button id="disconnectBtn" type="button" class="danger">切断</button>
+      </div>
+      <pre id="cloudValues">まだ取得していません。</pre>
+    </section>
+  </main>
 
   <script src="app.js"></script>
 </body>

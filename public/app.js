@@ -1,84 +1,148 @@
-// app.js
+const $ = (id) => document.getElementById(id);
 
-// ------------------------------
-// DOM 要素
-// ------------------------------
-const usernameInput = document.getElementById("username");
-const passwordInput = document.getElementById("password");
-const projectIdInput = document.getElementById("projectId");
+const elements = {
+  apiModeInputs: [...document.querySelectorAll('input[name="apiMode"]')],
+  supabaseSettings: $('supabaseSettings'),
+  supabaseUrl: $('supabaseUrl'),
+  supabaseAnonKey: $('supabaseAnonKey'),
+  functionName: $('functionName'),
+  saveSupabaseSettingsBtn: $('saveSupabaseSettingsBtn'),
+  username: $('username'),
+  password: $('password'),
+  projectId: $('projectId'),
+  connectBtn: $('connectBtn'),
+  connectStatus: $('connectStatus'),
+  cloudName: $('cloudName'),
+  cloudValue: $('cloudValue'),
+  sendBtn: $('sendBtn'),
+  sendStatus: $('sendStatus'),
+  refreshBtn: $('refreshBtn'),
+  disconnectBtn: $('disconnectBtn'),
+  cloudValues: $('cloudValues'),
+};
 
-const connectBtn = document.getElementById("connectBtn");
-const connectStatus = document.getElementById("connectStatus");
+const SETTINGS_KEY = 'scratch-cloud-controller:supabase';
 
-const cloudNameInput = document.getElementById("cloudName");
-const cloudValueInput = document.getElementById("cloudValue");
-const sendBtn = document.getElementById("sendBtn");
-const sendStatus = document.getElementById("sendStatus");
+function getMode() {
+  return document.querySelector('input[name="apiMode"]:checked').value;
+}
 
-const refreshBtn = document.getElementById("refreshBtn");
-const cloudValuesBox = document.getElementById("cloudValues");
+function loadSettings() {
+  const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+  elements.supabaseUrl.value = saved.supabaseUrl || '';
+  elements.supabaseAnonKey.value = saved.supabaseAnonKey || '';
+  elements.functionName.value = saved.functionName || 'scratch-controller';
+}
 
-// ------------------------------
-// Scratch Cloud 接続
-// ------------------------------
-connectBtn.addEventListener("click", async () => {
-  const username = usernameInput.value.trim();
-  const password = passwordInput.value.trim();
-  const projectId = projectIdInput.value.trim();
+function saveSettings() {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+    supabaseUrl: elements.supabaseUrl.value.trim().replace(/\/$/, ''),
+    supabaseAnonKey: elements.supabaseAnonKey.value.trim(),
+    functionName: elements.functionName.value.trim() || 'scratch-controller',
+  }));
+}
 
-  connectStatus.textContent = "接続中...";
+function updateModeVisibility() {
+  elements.supabaseSettings.hidden = getMode() !== 'supabase';
+}
 
-  const res = await fetch("/api/connect", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password, projectId })
+function getCredentials() {
+  return {
+    username: elements.username.value.trim(),
+    password: elements.password.value,
+    projectId: elements.projectId.value.trim(),
+  };
+}
+
+function getSupabaseEndpoint(action) {
+  const supabaseUrl = elements.supabaseUrl.value.trim().replace(/\/$/, '');
+  const functionName = elements.functionName.value.trim() || 'scratch-controller';
+  if (!supabaseUrl || !elements.supabaseAnonKey.value.trim()) {
+    throw new Error('Supabase URL と anon key を入力してください。');
+  }
+  return `${supabaseUrl}/functions/v1/${functionName}/${action}`;
+}
+
+async function request(action, payload = {}, method = 'POST') {
+  const mode = getMode();
+  const endpoint = mode === 'supabase' ? getSupabaseEndpoint(action) : `/api/${action}`;
+  const headers = { 'Content-Type': 'application/json' };
+
+  if (mode === 'supabase') {
+    const anonKey = elements.supabaseAnonKey.value.trim();
+    headers.apikey = anonKey;
+    headers.Authorization = `Bearer ${anonKey}`;
+  }
+
+  const options = { method, headers };
+  if (method !== 'GET') {
+    options.body = JSON.stringify(payload);
+  }
+
+  const response = await fetch(endpoint, options);
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || data.ok === false) {
+    throw new Error(data.message || data.error || `HTTP ${response.status}`);
+  }
+  return data;
+}
+
+async function runWithStatus(button, statusElement, pendingText, task) {
+  button.disabled = true;
+  statusElement.textContent = pendingText;
+  statusElement.className = 'status';
+  try {
+    const data = await task();
+    statusElement.textContent = data.message || '完了しました。';
+    statusElement.classList.add('success');
+    return data;
+  } catch (error) {
+    statusElement.textContent = error.message;
+    statusElement.classList.add('error');
+    return null;
+  } finally {
+    button.disabled = false;
+  }
+}
+
+elements.saveSupabaseSettingsBtn.addEventListener('click', () => {
+  saveSettings();
+  elements.connectStatus.textContent = 'Supabase 設定を保存しました。';
+  elements.connectStatus.className = 'status success';
+});
+
+elements.apiModeInputs.forEach((input) => input.addEventListener('change', updateModeVisibility));
+
+elements.connectBtn.addEventListener('click', async () => {
+  saveSettings();
+  await runWithStatus(elements.connectBtn, elements.connectStatus, '接続中...', () => (
+    request('connect', getCredentials())
+  ));
+});
+
+elements.sendBtn.addEventListener('click', async () => {
+  await runWithStatus(elements.sendBtn, elements.sendStatus, '送信中...', () => (
+    request('send', {
+      ...getCredentials(),
+      name: elements.cloudName.value.trim(),
+      value: elements.cloudValue.value.trim(),
+    })
+  ));
+});
+
+elements.refreshBtn.addEventListener('click', async () => {
+  await runWithStatus(elements.refreshBtn, elements.connectStatus, '読み込み中...', async () => {
+    const data = await request('cloud-values', getCredentials());
+    elements.cloudValues.textContent = JSON.stringify(data.clouddatas || {}, null, 2);
+    return { message: 'クラウド変数一覧を更新しました。' };
   });
-
-  const data = await res.json();
-
-  if (data.ok) {
-    connectStatus.textContent = "接続成功！";
-  } else {
-    connectStatus.textContent = "接続失敗: " + data.message;
-  }
 });
 
-// ------------------------------
-// クラウド変数送信
-// ------------------------------
-sendBtn.addEventListener("click", async () => {
-  const name = cloudNameInput.value.trim();
-  const value = cloudValueInput.value.trim();
-
-  sendStatus.textContent = "送信中...";
-
-  const res = await fetch("/api/send", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, value })
-  });
-
-  const data = await res.json();
-
-  if (data.ok) {
-    sendStatus.textContent = `送信成功: ${name} = ${value}`;
-  } else {
-    sendStatus.textContent = "送信失敗: " + data.message;
-  }
+elements.disconnectBtn.addEventListener('click', async () => {
+  await runWithStatus(elements.disconnectBtn, elements.connectStatus, '切断中...', () => (
+    request('disconnect', getCredentials())
+  ));
 });
 
-// ------------------------------
-// クラウド変数一覧の取得
-// ------------------------------
-refreshBtn.addEventListener("click", async () => {
-  cloudValuesBox.textContent = "読み込み中...";
-
-  const res = await fetch("/api/cloud-values");
-  const data = await res.json();
-
-  if (data.ok) {
-    cloudValuesBox.textContent = JSON.stringify(data.clouddatas, null, 2);
-  } else {
-    cloudValuesBox.textContent = "取得失敗";
-  }
-});
+loadSettings();
+updateModeVisibility();
